@@ -1,6 +1,7 @@
 package io.github.qdiaps;
 
 import atlantafx.base.theme.NordLight;
+import io.github.qdiaps.infrastructure.event.EventBus;
 import io.github.qdiaps.ui.controller.ChartController;
 import io.github.qdiaps.ui.controller.RightPanelController;
 import io.github.qdiaps.ui.controller.TopPanelController;
@@ -21,6 +22,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // Setup dependencies
+        var eventBus = new EventBus();
+
         // Setup fxml
         var loader = new FXMLLoader(getClass().getResource("main.fxml"));
 
