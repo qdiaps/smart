@@ -27,7 +27,7 @@ public class Serial {
 
     public void openPort(String portName, int baudRate) {
         if (port != null && port.isOpen()) {
-            eventBus.post(new SerialConnectionFailedEvent("Port is already open"));
+            eventBus.post(new SerialEvent.ConnectionFailed("Port is already open"));
             return;
         }
 
@@ -35,19 +35,19 @@ public class Serial {
         try {
             tempPort = SerialPort.getCommPort(portName);
         } catch (SerialPortInvalidPortException e) {
-            eventBus.post(new SerialConnectionFailedEvent("Invalid port name: " + portName));
+            eventBus.post(new SerialEvent.ConnectionFailed("Invalid port name: " + portName));
             return;
         }
 
         port = tempPort;
 
         if (!port.setBaudRate(baudRate)) {
-            eventBus.post(new SerialConnectionFailedEvent("Invalid baudRate: " + baudRate));
+            eventBus.post(new SerialEvent.ConnectionFailed("Invalid baudRate: " + baudRate));
             return;
         }
 
         if (!port.openPort()) {
-            eventBus.post(new SerialConnectionFailedEvent("Port is currently in use by another process"));
+            eventBus.post(new SerialEvent.ConnectionFailed("Port is currently in use by another process"));
             return;
         }
 
@@ -57,7 +57,7 @@ public class Serial {
             if (port != null && port.isOpen()) {
                 port.flushIOBuffers();
                 isReadyToRead = true;
-                eventBus.post(new SerialConnectionEstablishedEvent(portName, baudRate));
+                eventBus.post(new SerialEvent.ConnectionEstablished(portName, baudRate));
             }
         }, CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS));
     }
@@ -67,13 +67,13 @@ public class Serial {
             port.closePort();
             port = null;
             isReadyToRead = false;
-            eventBus.post(new SerialDisconnectedEvent());
+            eventBus.post(new SerialEvent.Disconnected());
         }
     }
 
     public void send(String rawData) {
         if (port == null || !port.isOpen() || !isReadyToRead) {
-            eventBus.post(new DataSendFailedEvent("Port is not connected"));
+            eventBus.post(new SerialEvent.DataSendFailed("Port is not connected"));
             return;
         }
 
@@ -84,9 +84,9 @@ public class Serial {
             out.write(data.getBytes());
             out.flush();
 
-            eventBus.post(new DataSentEvent(rawData));
+            eventBus.post(new SerialEvent.DataSent(rawData));
         } catch (Exception e) {
-            eventBus.post(new DataSendFailedEvent("Write error: " + e.getMessage()));
+            eventBus.post(new SerialEvent.DataSendFailed("Write error: " + e.getMessage()));
         }
     }
 
@@ -116,13 +116,13 @@ public class Serial {
                         port = null;
                         isReadyToRead = false;
                     }
-                    eventBus.post(new SerialConnectionLostEvent("Device disconnected unexpectedly"));
+                    eventBus.post(new SerialEvent.ConnectionLost("Device disconnected unexpectedly"));
                 } else if ((event.getEventType() & SerialPort.LISTENING_EVENT_DATA_RECEIVED) > 0) {
                     if (!isReadyToRead)
                         return;
 
                     String data = new String(event.getReceivedData()).trim();
-                    eventBus.post(new DataReceivedEvent(data));
+                    eventBus.post(new SerialEvent.DataReceived(data));
                 }
             }
         });
