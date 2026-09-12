@@ -5,3 +5,8 @@
 - `./mvnw clean test` - run test
 - `./mvnw clean package -Pfat-jar` - run build
 - `java -jar target/smart-0.0.1.jar` - run app
+
+# Requirements
+- Linux
+  - Ubuntu/Debian - dialout
+  - Arch - uucp
