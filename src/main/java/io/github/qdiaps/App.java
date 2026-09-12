@@ -44,9 +44,6 @@ public class App extends Application {
         Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
 
         stage.setTitle("SMART");
-        stage.setMinHeight(610.0D);
-        stage.setMinWidth(900.0D);
-
         Parent root = loader.load();
         stage.setScene(new Scene(root));
         stage.show();
