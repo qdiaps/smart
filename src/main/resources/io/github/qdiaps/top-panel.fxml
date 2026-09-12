@@ -10,7 +10,6 @@
 <?import javafx.scene.layout.Region?>
 
 <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0" spacing="10.0" style="-fx-border-color: #d8dee9;" BorderPane.alignment="CENTER"
-      stylesheets="@nord-light.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="io.github.qdiaps.ui.controller.TopPanelController">
     <padding>
