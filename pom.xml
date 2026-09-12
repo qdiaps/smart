@@ -178,6 +178,14 @@
                                             <mainClass>${main.class}</mainClass>
                                         </transformer>
                                     </transformers>
+                                    <filters>
+                                        <filter>
+                                            <artifact>com.fazecast:jSerialComm</artifact>
+                                            <excludes>
+                                                <exclude>Android/**</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
                                 </configuration>
                             </execution>
                         </executions>
