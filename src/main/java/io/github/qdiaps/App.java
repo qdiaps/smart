@@ -2,6 +2,10 @@ package io.github.qdiaps;
 
 import atlantafx.base.theme.NordLight;
 import io.github.qdiaps.infrastructure.event.EventBus;
+import io.github.qdiaps.infrastructure.logging.EventLogger;
+import io.github.qdiaps.infrastructure.serial.Serial;
+import io.github.qdiaps.service.SerialConnectionService;
+import io.github.qdiaps.service.SerialSendService;
 import io.github.qdiaps.ui.controller.ChartController;
 import io.github.qdiaps.ui.controller.RightPanelController;
 import io.github.qdiaps.ui.controller.TopPanelController;
@@ -10,12 +14,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class App extends Application {
-    private final Logger logger = LoggerFactory.getLogger(App.class);
-
     public static void main(String[] args) {
         launch(args);
     }
@@ -24,9 +26,16 @@ public class App extends Application {
     public void start(Stage stage) throws Exception {
         // Setup dependencies
         var eventBus = new EventBus();
+        new EventLogger(eventBus);
+        var serial = new Serial(eventBus);
+
+        var serialConnectionService = new SerialConnectionService(serial);
+        var serialSendService = new SerialSendService(serial);
+
 
         // Setup fxml
         var loader = new FXMLLoader(getClass().getResource("main.fxml"));
+
 
         // Setup controllers
         loader.setControllerFactory(type -> {
@@ -44,6 +53,7 @@ public class App extends Application {
             }
         });
 
+
         // Setup GUI
         Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
 
@@ -52,11 +62,17 @@ public class App extends Application {
         stage.setScene(new Scene(root));
         stage.show();
 
-        logger.info("Started");
+
+        // Configure shutdown
+        stage.setOnCloseRequest(event -> {
+            serialConnectionService.disconnect();
+        });
+
+        log.info("Program started");
     }
 
     @Override
     public void stop() {
-        logger.info("Shutdown");
+        log.info("Shutdown");
     }
 }
