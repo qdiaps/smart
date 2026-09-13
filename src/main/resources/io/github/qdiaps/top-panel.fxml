@@ -15,11 +15,11 @@
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
     </padding>
     <children>
-        <ComboBox prefWidth="150.0" promptText="COM-порт" />
+        <ComboBox fx:id="portName" prefWidth="150.0" promptText="COM-порт" />
         <ComboBox fx:id="baudRate" prefWidth="180.0" promptText="Швидкість (Baud)" />
-        <Button mnemonicParsing="false" styleClass="success" text="Підключити" />
+        <Button fx:id="connectionButton" mnemonicParsing="false" styleClass="success" text="Підключити" />
         <Separator orientation="VERTICAL" prefHeight="200.0" />
-        <Label text="Немає зв'язку" />
+        <Label fx:id="status" text="Немає зв'язку" />
     </children>
     <opaqueInsets>
         <Insets />

@@ -43,7 +43,7 @@ public class App extends Application {
         // Setup controllers
         loader.setControllerFactory(type -> {
             if (type == TopPanelController.class)
-                return new TopPanelController();
+                return new TopPanelController(serialConnectionService, eventBus, notifier);
             else if (type == ChartController.class)
                 return new ChartController();
             else if (type == RightPanelController.class)
