@@ -17,6 +17,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>21.0.2</javafx.version>
         <mockito.version>5.23.0</mockito.version>
+        <ikonli.version>12.4.0</ikonli.version>
     </properties>
 
     <dependencies>
@@ -50,6 +51,16 @@
             <artifactId>lombok</artifactId>
             <version>1.18.42</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>${ikonli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-material2-pack</artifactId>
+            <version>${ikonli.version}</version>
         </dependency>
 
         <!-- JavaFX -->
