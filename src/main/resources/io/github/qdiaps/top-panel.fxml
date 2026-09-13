@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0" spacing="10.0" style="-fx-border-color: #d8dee9;" BorderPane.alignment="CENTER"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -22,7 +23,11 @@
         <Separator orientation="VERTICAL" prefHeight="200.0" />
         <Label text="Немає зв'язку" />
         <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
-        <Button mnemonicParsing="false" prefHeight="36.0" prefWidth="36.0" text="?" />
+        <Button styleClass="button-circle, flat">
+            <graphic>
+                <FontIcon iconLiteral="mdal-help_outline" iconSize="18" />
+            </graphic>
+        </Button>
     </children>
     <opaqueInsets>
         <Insets />
