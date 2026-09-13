@@ -6,7 +6,9 @@ import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.service.SerialSendService;
+import io.github.qdiaps.ui.Notifier;
 import io.github.qdiaps.ui.controller.ChartController;
+import io.github.qdiaps.ui.controller.MainController;
 import io.github.qdiaps.ui.controller.RightPanelController;
 import io.github.qdiaps.ui.controller.TopPanelController;
 import javafx.application.Application;
@@ -28,6 +30,7 @@ public class App extends Application {
         var eventBus = new EventBus();
         new EventLogger(eventBus);
         var serial = new Serial(eventBus);
+        var notifier = new Notifier();
 
         var serialConnectionService = new SerialConnectionService(serial);
         var serialSendService = new SerialSendService(serial);
@@ -45,6 +48,8 @@ public class App extends Application {
                 return new ChartController();
             else if (type == RightPanelController.class)
                 return new RightPanelController();
+            else if (type == MainController.class)
+                return new MainController(notifier);
 
             try {
                 return type.getDeclaredConstructor().newInstance();
