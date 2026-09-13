@@ -14,7 +14,7 @@ import java.util.Objects;
 public class Notifier {
     private VBox container;
 
-    public void init(VBox container) {
+    public void setContainer(VBox container) {
         Objects.requireNonNull(container);
 
         this.container = container;

@@ -16,6 +16,6 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        notifier.init(notificationContainer);
+        notifier.setContainer(notificationContainer);
     }
 }
