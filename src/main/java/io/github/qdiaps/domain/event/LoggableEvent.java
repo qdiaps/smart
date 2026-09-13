@@ -1,3 +1,3 @@
-package io.github.qdiaps.infrastructure.event;
+package io.github.qdiaps.domain.event;
 
 public interface LoggableEvent extends Event { }

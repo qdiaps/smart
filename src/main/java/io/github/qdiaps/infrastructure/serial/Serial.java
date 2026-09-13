@@ -1,7 +1,7 @@
 package io.github.qdiaps.infrastructure.serial;
 
 import com.fazecast.jSerialComm.*;
-import io.github.qdiaps.infrastructure.event.EventBus;
+import io.github.qdiaps.domain.event.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

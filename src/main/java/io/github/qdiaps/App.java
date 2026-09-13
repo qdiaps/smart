@@ -1,7 +1,8 @@
 package io.github.qdiaps;
 
 import atlantafx.base.theme.NordLight;
-import io.github.qdiaps.infrastructure.event.EventBus;
+import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
 import io.github.qdiaps.service.SerialConnectionService;
@@ -27,7 +28,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         // Setup dependencies
-        var eventBus = new EventBus();
+        EventBus eventBus = new EventBusImpl();
         new EventLogger(eventBus);
         var serial = new Serial(eventBus);
         var notifier = new Notifier();

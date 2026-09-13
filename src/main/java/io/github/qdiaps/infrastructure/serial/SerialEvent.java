@@ -1,8 +1,8 @@
 package io.github.qdiaps.infrastructure.serial;
 
-import io.github.qdiaps.infrastructure.event.Event;
-import io.github.qdiaps.infrastructure.event.FailedEvent;
-import io.github.qdiaps.infrastructure.event.LoggableEvent;
+import io.github.qdiaps.domain.event.Event;
+import io.github.qdiaps.domain.event.FailedEvent;
+import io.github.qdiaps.domain.event.LoggableEvent;
 
 public interface SerialEvent extends Event {
     record ConnectionEstablished(String portName, int baudRate) implements SerialEvent, LoggableEvent {}

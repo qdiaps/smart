@@ -1,7 +1,7 @@
 package io.github.qdiaps.ui.controller;
 
 import atlantafx.base.theme.Styles;
-import io.github.qdiaps.infrastructure.event.EventBus;
+import io.github.qdiaps.domain.event.EventBus;
 import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.ui.Notifier;

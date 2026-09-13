@@ -1,12 +1,15 @@
 package io.github.qdiaps.infrastructure.event;
 
+import io.github.qdiaps.domain.event.Event;
+import io.github.qdiaps.domain.event.EventBus;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
-public final class EventBus {
+public final class EventBusImpl implements EventBus {
     private final Map<Class<? extends Event>, List<Consumer<Event>>> listeners = new ConcurrentHashMap<>();
     private final List<Consumer<Event>> globalListeners = new CopyOnWriteArrayList<>();
 

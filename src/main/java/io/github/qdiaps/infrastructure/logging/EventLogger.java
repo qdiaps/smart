@@ -1,8 +1,8 @@
 package io.github.qdiaps.infrastructure.logging;
 
-import io.github.qdiaps.infrastructure.event.EventBus;
-import io.github.qdiaps.infrastructure.event.FailedEvent;
-import io.github.qdiaps.infrastructure.event.LoggableEvent;
+import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.domain.event.FailedEvent;
+import io.github.qdiaps.domain.event.LoggableEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
