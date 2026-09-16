@@ -12,6 +12,8 @@ public final class Config {
     // UI
     public static final int INFO_MESSAGE_DELAY = 3;
     public static final int WARN_MESSAGE_DELAY = 5;
+    public static final String CHART_TITLE = "Перехідний процес ПІД-регулятора";
+    public static final double DEFAULT_CHART_MAX_TIME = 300.0;
 
 
     public static String getVersion() {

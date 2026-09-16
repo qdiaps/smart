@@ -9,6 +9,7 @@ import io.github.qdiaps.infrastructure.serial.Serial;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.service.SerialSendService;
 import io.github.qdiaps.ui.Notifier;
+import io.github.qdiaps.ui.builder.ChartBuilder;
 import io.github.qdiaps.ui.controller.ChartController;
 import io.github.qdiaps.ui.controller.MainController;
 import io.github.qdiaps.ui.controller.RightPanelController;
@@ -33,6 +34,7 @@ public class App extends Application {
         new EventLogger(eventBus);
         var serial = new Serial(eventBus);
         var notifier = new Notifier();
+        var chartBuilder = new ChartBuilder(Config.CHART_TITLE);
 
         var serialConnectionService = new SerialConnectionService(serial);
         var serialSendService = new SerialSendService(serial);
@@ -47,7 +49,7 @@ public class App extends Application {
             if (type == TopPanelController.class)
                 return new TopPanelController(serialConnectionService, eventBus, notifier);
             else if (type == ChartController.class)
-                return new ChartController();
+                return new ChartController(chartBuilder, eventBus);
             else if (type == RightPanelController.class)
                 return new RightPanelController();
             else if (type == MainController.class)
