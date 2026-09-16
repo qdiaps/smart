@@ -2,6 +2,7 @@ package io.github.qdiaps.infrastructure.serial;
 
 import com.fazecast.jSerialComm.*;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.infrastructure.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,7 +60,7 @@ public class Serial {
                 isReadyToRead = true;
                 eventBus.post(new SerialEvent.ConnectionEstablished(portName, baudRate));
             }
-        }, CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS));
+        }, CompletableFuture.delayedExecutor(Config.ARDUINO_BOOT_DELAY_SECONDS, TimeUnit.SECONDS));
     }
 
     public void closePort() {

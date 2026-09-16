@@ -2,6 +2,7 @@ package io.github.qdiaps.ui;
 
 import atlantafx.base.controls.Notification;
 import atlantafx.base.theme.Styles;
+import io.github.qdiaps.infrastructure.config.Config;
 import javafx.animation.PauseTransition;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
@@ -23,13 +24,13 @@ public class Notifier {
     public void showInfo(String message) {
         var notification = new Notification(message);
         notification.getStyleClass().addAll(Styles.ELEVATED_2, Styles.SUCCESS);
-        showWithTimeout(notification, 3);
+        showWithTimeout(notification, Config.INFO_MESSAGE_DELAY);
     }
 
     public void showWarn(String message) {
         var notification = new Notification(message);
         notification.getStyleClass().addAll(Styles.ELEVATED_2, Styles.WARNING);
-        showWithTimeout(notification, 5);
+        showWithTimeout(notification, Config.WARN_MESSAGE_DELAY);
     }
 
     public void showError(String message) {

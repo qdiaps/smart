@@ -2,6 +2,7 @@ package io.github.qdiaps.ui.controller;
 
 import atlantafx.base.theme.Styles;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.ui.Notifier;
@@ -75,7 +76,7 @@ public class TopPanelController {
         String port = portName.getValue();
         Integer baud = baudRate.getValue();
         if (baud == null)
-            baud = 9600;
+            baud = Config.DEFAULT_BAUD_RATE;
 
         connectionService.connect(port, baud);
     }

@@ -2,6 +2,7 @@ package io.github.qdiaps;
 
 import atlantafx.base.theme.NordLight;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
@@ -63,7 +64,7 @@ public class App extends Application {
         // Setup GUI
         Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
 
-        stage.setTitle("SMART");
+        stage.setTitle(Config.PROGRAM_NAME);
         Parent root = loader.load();
         stage.setScene(new Scene(root));
         stage.show();
@@ -74,7 +75,7 @@ public class App extends Application {
             serialConnectionService.disconnect();
         });
 
-        log.info("Program started");
+        log.info("Program {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
     }
 
     @Override
