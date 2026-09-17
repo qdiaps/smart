@@ -65,6 +65,7 @@ public class Serial {
 
     public void closePort() {
         if (port != null && port.isOpen()) {
+            port.removeDataListener();
             port.closePort();
             port = null;
             isReadyToRead = false;
