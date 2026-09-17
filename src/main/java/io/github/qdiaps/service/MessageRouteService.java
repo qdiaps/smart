@@ -10,15 +10,21 @@ import java.util.Objects;
 
 public class MessageRouteService {
     private final EventBus eventBus;
+    private final ReliableSerialService reliableService;
     private final Map<String, Command> commandRegistry;
     private final List<String> ackCommandRegistry;
 
-    public MessageRouteService(EventBus eventBus, Map<String, Command> commandRegistry, List<String> ackCommandRegistry) {
+    public MessageRouteService(
+            EventBus eventBus, ReliableSerialService reliableService,
+            Map<String, Command> commandRegistry, List<String> ackCommandRegistry
+    ) {
         Objects.requireNonNull(eventBus);
+        Objects.requireNonNull(reliableService);
         Objects.requireNonNull(commandRegistry);
         Objects.requireNonNull(ackCommandRegistry);
 
         this.eventBus = eventBus;
+        this.reliableService = reliableService;
         this.commandRegistry = commandRegistry;
         this.ackCommandRegistry = ackCommandRegistry;
 
@@ -31,7 +37,7 @@ public class MessageRouteService {
             postRouteFailedEvent(null);
             return;
         } else if (ackCommandRegistry.contains(rawMessage)) {
-            // TODO: send to reliable service
+            reliableService.confirmAck(rawMessage);
             return;
         }
 

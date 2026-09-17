@@ -8,8 +8,8 @@ import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
-import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.service.MessageRouteService;
+import io.github.qdiaps.service.ReliableSerialService;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.service.SerialSendService;
 import io.github.qdiaps.ui.Notifier;
@@ -51,10 +51,11 @@ public class App extends Application {
         var serial = new Serial(eventBus);
         var notifier = new Notifier();
         var chartBuilder = new ChartBuilder(Config.CHART_TITLE);
-        var messageRouteService = new MessageRouteService(eventBus, commandRegistry, ackCommandRegistry);
 
-        var serialConnectionService = new SerialConnectionService(serial);
         var serialSendService = new SerialSendService(serial);
+        var reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
+        var messageRouteService = new MessageRouteService(eventBus, reliableSerialService, commandRegistry, ackCommandRegistry);
+        var serialConnectionService = new SerialConnectionService(serial);
 
 
         // Setup fxml
