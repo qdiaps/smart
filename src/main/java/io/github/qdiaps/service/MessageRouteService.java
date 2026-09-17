@@ -54,7 +54,7 @@ public class MessageRouteService {
         }
 
         String[] payload = parts[1].split(";");
-        command.execute(payload);
+        command.execute(payload).ifPresent(eventBus::post);
     }
 
     private void postRouteFailedEvent(String rawMessage) {
