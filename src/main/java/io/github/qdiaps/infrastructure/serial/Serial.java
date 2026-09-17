@@ -114,6 +114,7 @@ public class Serial {
             public void serialEvent(SerialPortEvent event) {
                 if ((event.getEventType() & SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) > 0) {
                     if (port != null) {
+                        port.removeDataListener();
                         port.closePort();
                         port = null;
                         isReadyToRead = false;
