@@ -4,10 +4,12 @@ import atlantafx.base.theme.NordLight;
 import io.github.qdiaps.domain.command.Command;
 import io.github.qdiaps.domain.command.DataCommand;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.domain.model.DataModel;
 import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
+import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.service.MessageRouteService;
 import io.github.qdiaps.service.ReliableSerialService;
 import io.github.qdiaps.service.SerialConnectionService;
@@ -39,8 +41,9 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         // Setup dependencies
+        var dataModel = new DataModel();
         Map<String, Command> commandRegistry = new HashMap<>();
-        commandRegistry.put("data", new DataCommand());
+        commandRegistry.put("data", new DataCommand(dataModel));
 
         List<String> ackCommandRegistry = new ArrayList<>();
         ackCommandRegistry.add("pong");
@@ -96,6 +99,13 @@ public class App extends Application {
         });
 
         log.info("Program {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
+
+        // Test DataCommand
+        // TODO: remove
+        eventBus.post(new SerialEvent.DataReceived("data:10.0"));
+        eventBus.post(new SerialEvent.DataReceived("data:1t"));
+        eventBus.post(new SerialEvent.DataReceived("data:10.0;20.0;30.0"));
+        eventBus.post(new SerialEvent.DataReceived("data:10.0;200.0;30.0"));
     }
 
     @Override
