@@ -2,6 +2,7 @@ package io.github.qdiaps.domain.command;
 
 import io.github.qdiaps.domain.event.DomainEvent;
 import io.github.qdiaps.domain.model.DataModel;
+import io.github.qdiaps.domain.model.ExperimentSession;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DataCommand implements Command {
     private final DataModel data;
+    private final ExperimentSession session;
 
     @Override
     public Optional<DomainEvent> execute(String[] payload) {
@@ -18,6 +20,10 @@ public class DataCommand implements Command {
         else if (!data.canAddPoint())
             return Optional.of(new DataPointDroppedEvent(
                     "Cannot add new point", "data:" + Arrays.toString(payload)
+            ));
+        else if (session.isPaused())
+            return Optional.of(new DataPointDroppedEvent(
+                    "Experiment is paused", "data:" + Arrays.toString(payload)
             ));
 
         float tempTz, tempTt, out;
@@ -37,8 +43,8 @@ public class DataCommand implements Command {
         // TODO: add arguments...
         data.addPoint();
 
-        // TODO: add time
-        return Optional.of(new DataPointAddedEvent(0.0f, tempTz, tempTt, out));
+        var time = (float) session.getElapsedSeconds();
+        return Optional.of(new DataPointAddedEvent(time, tempTz, tempTt, out));
     }
 
     private Optional<DomainEvent> getIncorrectFormatEvent(String[] payload) {

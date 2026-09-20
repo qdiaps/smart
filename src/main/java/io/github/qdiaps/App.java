@@ -5,15 +5,15 @@ import io.github.qdiaps.domain.command.Command;
 import io.github.qdiaps.domain.command.DataCommand;
 import io.github.qdiaps.domain.event.EventBus;
 import io.github.qdiaps.domain.model.DataModel;
+import io.github.qdiaps.domain.model.ExperimentSession;
+import io.github.qdiaps.domain.service.TimeProvider;
 import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
 import io.github.qdiaps.infrastructure.serial.SerialEvent;
-import io.github.qdiaps.service.MessageRouteService;
-import io.github.qdiaps.service.ReliableSerialService;
-import io.github.qdiaps.service.SerialConnectionService;
-import io.github.qdiaps.service.SerialSendService;
+import io.github.qdiaps.infrastructure.time.SystemTimeProvider;
+import io.github.qdiaps.service.*;
 import io.github.qdiaps.ui.Notifier;
 import io.github.qdiaps.ui.builder.ChartBuilder;
 import io.github.qdiaps.ui.controller.ChartController;
@@ -41,9 +41,12 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         // Setup dependencies
+        TimeProvider timeProvider = new SystemTimeProvider();
+        var experimentSession = new ExperimentSession(timeProvider);
         var dataModel = new DataModel();
+
         Map<String, Command> commandRegistry = new HashMap<>();
-        commandRegistry.put("data", new DataCommand(dataModel));
+        commandRegistry.put("data", new DataCommand(dataModel, experimentSession));
 
         List<String> ackCommandRegistry = new ArrayList<>();
         ackCommandRegistry.add("pong");
@@ -59,6 +62,7 @@ public class App extends Application {
         var reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
         var messageRouteService = new MessageRouteService(eventBus, reliableSerialService, commandRegistry, ackCommandRegistry);
         var serialConnectionService = new SerialConnectionService(serial);
+        var experimentControlService = new ExperimentControlService(experimentSession);
 
 
         // Setup fxml
