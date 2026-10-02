@@ -103,13 +103,6 @@ public class App extends Application {
         });
 
         log.info("Program {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
-
-        // Test DataCommand
-        // TODO: remove
-        eventBus.post(new SerialEvent.DataReceived("data:10.0"));
-        eventBus.post(new SerialEvent.DataReceived("data:1t"));
-        eventBus.post(new SerialEvent.DataReceived("data:10.0;20.0;30.0"));
-        eventBus.post(new SerialEvent.DataReceived("data:10.0;200.0;30.0"));
     }
 
     @Override
