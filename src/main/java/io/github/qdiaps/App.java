@@ -40,6 +40,7 @@ import java.util.Map;
 public class App extends Application {
     private SessionService sessionService;
     private SerialConnectionService serialConnectionService;
+    private ReliableSerialService reliableSerialService;
 
     public static void main(String[] args) {
         launch(args);
@@ -66,9 +67,9 @@ public class App extends Application {
         var chartBuilder = new ChartBuilder(Config.CHART_TITLE);
 
         var serialSendService = new SerialSendService(serial);
-        var reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
+        reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
         var messageRouteService = new MessageRouteService(eventBus, reliableSerialService, commandRegistry, ackCommandRegistry);
-        serialConnectionService = new SerialConnectionService(serial);
+        serialConnectionService = new SerialConnectionService(serial, reliableSerialService, eventBus);
         var experimentControlService = new ExperimentControlService(experimentSession);
         sessionService = new SessionService(dataModel, experimentSession, eventBus);
 
@@ -109,7 +110,9 @@ public class App extends Application {
 
     @Override
     public void stop() {
-        log.info("Shutdown");
+        if (serialConnectionService != null) {
+            serialConnectionService.disconnect();
+        }
         if (sessionService != null) {
             try {
                 sessionService.close();
@@ -117,8 +120,14 @@ public class App extends Application {
                 log.error("Error closing session service", e);
             }
         }
-        if (serialConnectionService != null) {
-            serialConnectionService.disconnect();
+        if (reliableSerialService != null) {
+            try {
+                reliableSerialService.close();
+            } catch (Exception e) {
+                log.error("Error closing reliable serial service", e);
+            }
         }
+
+        log.info("Shutdown");
     }
 }

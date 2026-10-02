@@ -39,7 +39,7 @@ public class ChartController {
         chart.prefWidthProperty().bind(chartContainer.widthProperty());
         chart.prefHeightProperty().bind(chartContainer.heightProperty());
 
-        eventBus.subscribe(SerialEvent.ConnectionEstablished.class, e -> startSimulation());
+//        eventBus.subscribe(SerialEvent.ConnectionEstablished.class, e -> startSimulation());
     }
 
     public void startSimulation() {

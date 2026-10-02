@@ -6,11 +6,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-public class ReliableSerialService {
+public class ReliableSerialService implements AutoCloseable {
     private final SerialSendService sendService;
     private final EventBus eventBus;
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread thread = new Thread(r, "ReliableSerialService-scheduler");
+        thread.setDaemon(true);
+        return thread;
+    });
     private final Map<String, CompletableFuture<Void>> pendingAcks = new ConcurrentHashMap<>();
 
     public ReliableSerialService(SerialSendService sendService, EventBus eventBus) {
@@ -19,6 +23,10 @@ public class ReliableSerialService {
 
         this.sendService = sendService;
         this.eventBus = eventBus;
+    }
+
+    public void close() {
+        scheduler.shutdown();
     }
 
     public void confirmAck(String ackKey) {

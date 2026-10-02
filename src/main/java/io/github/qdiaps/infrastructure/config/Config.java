@@ -7,6 +7,8 @@ public final class Config {
     // Arduino
     public static final int ARDUINO_BOOT_DELAY_SECONDS = 3;
     public static final int DEFAULT_BAUD_RATE = 9600;
+    public static final int PING_TIMEOUT_MS = 300;
+    public static final int PING_MAX_RETRIES = 3;
 
 
     // UI

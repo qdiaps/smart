@@ -18,6 +18,7 @@ public class TopPanelController {
     private enum ConnectionStatus {
         DISCONNECTED,
         CONNECTING,
+        CHECKING,
         CONNECTED,
         DISCONNECTING
     }
@@ -36,6 +37,7 @@ public class TopPanelController {
     private Label status;
 
     private ConnectionStatus currentStatus = ConnectionStatus.DISCONNECTED;
+    private boolean isInitialHandshake = false;
 
     @FXML
     private void initialize() {
@@ -51,6 +53,8 @@ public class TopPanelController {
         eventBus.subscribe(SerialEvent.ConnectionFailed.class, e -> Platform.runLater(() -> onConnectionFailed(e)));
         eventBus.subscribe(SerialEvent.ConnectionLost.class, e -> Platform.runLater(this::onConnectionLost));
         eventBus.subscribe(SerialEvent.Disconnected.class, e -> Platform.runLater(this::onDisconnected));
+        eventBus.subscribe(SerialEvent.PingSuccess.class, e -> Platform.runLater(this::onPingSuccess));
+        eventBus.subscribe(SerialEvent.PingFailed.class, e -> Platform.runLater(this::onPingFailed));
     }
 
     private void updatePorts() {
@@ -81,29 +85,50 @@ public class TopPanelController {
         connectionService.connect(port, baud);
     }
 
+    private void onConnectionEstablished() {
+        currentStatus = ConnectionStatus.CHECKING;
+        isInitialHandshake = true;
+        status.setText("Перевірка зв'язку...");
+        connectionService.checkConnection();
+    }
+
+    private void onPingSuccess() {
+        currentStatus = ConnectionStatus.CONNECTED;
+        setConnectedUI();
+
+        if (isInitialHandshake) {
+            isInitialHandshake = false;
+            notifier.showInfo("Успішно підключено до Arduino. Розпочато обмін даними.");
+        } else {
+            notifier.showInfo("Arduino успішно відповів на перевірочний сигнал. " +
+                    "З'єднання активне та працює в штатному режимі.");
+        }
+    }
+
+    private void onPingFailed() {
+        if (isInitialHandshake) {
+            connectionService.disconnect();
+            notifier.showError("Пристрій не розпізнано. Порт закрито через відсутність відповіді. " +
+                    "Перевірте скетч та налаштування порту.");
+        } else {
+            currentStatus = ConnectionStatus.CONNECTED;
+            setConnectedUI();
+            notifier.showError("Arduino не надав відповіді на запит (таймаут). " +
+                    "Перевірте фізичне підключення кабелю або стан живлення плати.");
+        }
+    }
+
     private void disconnect() {
+        isInitialHandshake = false;
         currentStatus = ConnectionStatus.DISCONNECTING;
         connectionButton.setDisable(true);
         status.setText("Від'єднання...");
         connectionService.disconnect();
     }
 
-    private void onConnectionEstablished() {
-        currentStatus = ConnectionStatus.CONNECTED;
-        connectionButton.setDisable(false);
-        connectionButton.setText("Відключити");
-        connectionButton.getStyleClass().removeAll(Styles.DANGER, Styles.SUCCESS);
-        connectionButton.getStyleClass().add(Styles.DANGER);
-        status.setText("Підключено");
-
-        portName.setDisable(false);
-        baudRate.setDisable(false);
-
-        notifier.showInfo("Успішно підключено до Arduino. Розпочато обмін даними.");
-    }
-
     private void onConnectionFailed(SerialEvent.ConnectionFailed event) {
         currentStatus = ConnectionStatus.DISCONNECTED;
+        isInitialHandshake = false;
         setDefaultUI();
 
         if (event.reason().equals("Invalid port name: null"))
@@ -114,6 +139,7 @@ public class TopPanelController {
 
     private void onConnectionLost() {
         currentStatus = ConnectionStatus.DISCONNECTED;
+        isInitialHandshake = false;
         setDefaultUI();
         notifier.showWarn("Зв'язок з Arduino несподівано розірвано. Перевірте фізичне підключення кабелю до пристрою.");
     }
@@ -121,7 +147,10 @@ public class TopPanelController {
     private void onDisconnected() {
         currentStatus = ConnectionStatus.DISCONNECTED;
         setDefaultUI();
-        notifier.showInfo("Зв'язок з Arduino успішно завершено. Порт закрито.");
+        if (!isInitialHandshake) {
+            notifier.showInfo("Зв'язок з Arduino успішно завершено. Порт закрито.");
+        }
+        isInitialHandshake = false;
     }
 
     private void setDefaultUI() {
@@ -130,6 +159,17 @@ public class TopPanelController {
         connectionButton.getStyleClass().removeAll(Styles.DANGER, Styles.SUCCESS);
         connectionButton.getStyleClass().add(Styles.SUCCESS);
         status.setText("Немає зв'язку");
+
+        portName.setDisable(false);
+        baudRate.setDisable(false);
+    }
+
+    private void setConnectedUI() {
+        connectionButton.setDisable(false);
+        connectionButton.setText("Відключити");
+        connectionButton.getStyleClass().removeAll(Styles.DANGER, Styles.SUCCESS);
+        connectionButton.getStyleClass().add(Styles.DANGER);
+        status.setText("Підключено");
 
         portName.setDisable(false);
         baudRate.setDisable(false);
