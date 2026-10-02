@@ -18,6 +18,7 @@
         <ComboBox fx:id="portName" prefWidth="150.0" promptText="COM-порт" />
         <ComboBox fx:id="baudRate" prefWidth="180.0" promptText="Швидкість (Baud)" />
         <Button fx:id="connectionButton" mnemonicParsing="false" styleClass="success" text="Підключити" />
+        <Button fx:id="checkConnectionButton" disable="true" mnemonicParsing="false" text="Перевірити зв'язок" />
         <Separator orientation="VERTICAL" prefHeight="200.0" />
         <Label fx:id="status" text="Немає зв'язку" />
     </children>

@@ -34,6 +34,8 @@ public class TopPanelController {
     @FXML
     private Button connectionButton;
     @FXML
+    private Button checkConnectionButton;
+    @FXML
     private Label status;
 
     private ConnectionStatus currentStatus = ConnectionStatus.DISCONNECTED;
@@ -48,6 +50,7 @@ public class TopPanelController {
                 230400, 250000, 500000, 1000000
         );
         connectionButton.setOnAction(e -> onClickConnection());
+        checkConnectionButton.setOnAction(e -> onClickCheckConnection());
 
         eventBus.subscribe(SerialEvent.ConnectionEstablished.class, e -> Platform.runLater(this::onConnectionEstablished));
         eventBus.subscribe(SerialEvent.ConnectionFailed.class, e -> Platform.runLater(() -> onConnectionFailed(e)));
@@ -66,6 +69,19 @@ public class TopPanelController {
         switch (currentStatus) {
             case DISCONNECTED -> connect();
             case CONNECTED -> disconnect();
+        }
+    }
+
+    private void onClickCheckConnection() {
+        if (currentStatus == ConnectionStatus.CONNECTED) {
+            currentStatus = ConnectionStatus.CHECKING;
+            isInitialHandshake = false;
+            status.setText("Перевірка зв'язку...");
+
+            connectionButton.setDisable(true);
+            checkConnectionButton.setDisable(true);
+
+            connectionService.checkConnection();
         }
     }
 
@@ -118,14 +134,6 @@ public class TopPanelController {
         }
     }
 
-    private void disconnect() {
-        isInitialHandshake = false;
-        currentStatus = ConnectionStatus.DISCONNECTING;
-        connectionButton.setDisable(true);
-        status.setText("Від'єднання...");
-        connectionService.disconnect();
-    }
-
     private void onConnectionFailed(SerialEvent.ConnectionFailed event) {
         currentStatus = ConnectionStatus.DISCONNECTED;
         isInitialHandshake = false;
@@ -144,6 +152,15 @@ public class TopPanelController {
         notifier.showWarn("Зв'язок з Arduino несподівано розірвано. Перевірте фізичне підключення кабелю до пристрою.");
     }
 
+    private void disconnect() {
+        isInitialHandshake = false;
+        currentStatus = ConnectionStatus.DISCONNECTING;
+        connectionButton.setDisable(true);
+        checkConnectionButton.setDisable(true);
+        status.setText("Від'єднання...");
+        connectionService.disconnect();
+    }
+
     private void onDisconnected() {
         currentStatus = ConnectionStatus.DISCONNECTED;
         setDefaultUI();
@@ -158,6 +175,7 @@ public class TopPanelController {
         connectionButton.setText("Підключити");
         connectionButton.getStyleClass().removeAll(Styles.DANGER, Styles.SUCCESS);
         connectionButton.getStyleClass().add(Styles.SUCCESS);
+        checkConnectionButton.setDisable(true);
         status.setText("Немає зв'язку");
 
         portName.setDisable(false);
@@ -169,6 +187,7 @@ public class TopPanelController {
         connectionButton.setText("Відключити");
         connectionButton.getStyleClass().removeAll(Styles.DANGER, Styles.SUCCESS);
         connectionButton.getStyleClass().add(Styles.DANGER);
+        checkConnectionButton.setDisable(false);
         status.setText("Підключено");
 
         portName.setDisable(false);
