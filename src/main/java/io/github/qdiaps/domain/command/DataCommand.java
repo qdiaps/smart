@@ -2,6 +2,7 @@ package io.github.qdiaps.domain.command;
 
 import io.github.qdiaps.domain.event.DomainEvent;
 import io.github.qdiaps.domain.model.DataModel;
+import io.github.qdiaps.domain.model.DataPoint;
 import io.github.qdiaps.domain.model.ExperimentSession;
 import lombok.RequiredArgsConstructor;
 
@@ -17,13 +18,15 @@ public class DataCommand implements Command {
     public Optional<DomainEvent> execute(String[] payload) {
         if (payload == null || payload.length != 3)
             return getIncorrectFormatEvent(payload);
-        else if (!data.canAddPoint())
-            return Optional.of(new DataPointDroppedEvent(
-                    "Cannot add new point", "data:" + Arrays.toString(payload)
-            ));
         else if (session.isPaused())
             return Optional.of(new DataPointDroppedEvent(
                     "Experiment is paused", "data:" + Arrays.toString(payload)
+            ));
+
+        float time = (float) session.getElapsedSeconds();
+        if (!data.canAddPoint(time))
+            return Optional.of(new DataPointDroppedEvent(
+                    "Time limit reached", "data:" + Arrays.toString(payload)
             ));
 
         float tempTz, tempTt, out;
@@ -40,11 +43,10 @@ public class DataCommand implements Command {
                     "Values are out of acceptable range (0-100)", "data:" + Arrays.toString(payload)
             ));
 
-        // TODO: add arguments...
-        data.addPoint();
+        var point = new DataPoint(time, tempTz, tempTt, out);
+        data.addPoint(point);
 
-        var time = (float) session.getElapsedSeconds();
-        return Optional.of(new DataPointAddedEvent(time, tempTz, tempTt, out));
+        return Optional.of(new DataPointAddedEvent(point));
     }
 
     private Optional<DomainEvent> getIncorrectFormatEvent(String[] payload) {

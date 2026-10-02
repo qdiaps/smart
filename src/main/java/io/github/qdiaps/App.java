@@ -11,9 +11,13 @@ import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.infrastructure.event.EventBusImpl;
 import io.github.qdiaps.infrastructure.logging.EventLogger;
 import io.github.qdiaps.infrastructure.serial.Serial;
-import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.infrastructure.time.SystemTimeProvider;
-import io.github.qdiaps.service.*;
+import io.github.qdiaps.service.ExperimentControlService;
+import io.github.qdiaps.service.MessageRouteService;
+import io.github.qdiaps.service.ReliableSerialService;
+import io.github.qdiaps.service.SerialConnectionService;
+import io.github.qdiaps.service.SerialSendService;
+import io.github.qdiaps.service.SessionService;
 import io.github.qdiaps.ui.Notifier;
 import io.github.qdiaps.ui.builder.ChartBuilder;
 import io.github.qdiaps.ui.controller.ChartController;
@@ -34,6 +38,9 @@ import java.util.Map;
 
 @Slf4j
 public class App extends Application {
+    private SessionService sessionService;
+    private SerialConnectionService serialConnectionService;
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -61,8 +68,9 @@ public class App extends Application {
         var serialSendService = new SerialSendService(serial);
         var reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
         var messageRouteService = new MessageRouteService(eventBus, reliableSerialService, commandRegistry, ackCommandRegistry);
-        var serialConnectionService = new SerialConnectionService(serial);
+        serialConnectionService = new SerialConnectionService(serial);
         var experimentControlService = new ExperimentControlService(experimentSession);
+        sessionService = new SessionService(dataModel, experimentSession, eventBus);
 
 
         // Setup fxml
@@ -96,17 +104,21 @@ public class App extends Application {
         stage.setScene(new Scene(root));
         stage.show();
 
-
-        // Configure shutdown
-        stage.setOnCloseRequest(event -> {
-            serialConnectionService.disconnect();
-        });
-
         log.info("Program {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
     }
 
     @Override
     public void stop() {
         log.info("Shutdown");
+        if (sessionService != null) {
+            try {
+                sessionService.close();
+            } catch (Exception e) {
+                log.error("Error closing session service", e);
+            }
+        }
+        if (serialConnectionService != null) {
+            serialConnectionService.disconnect();
+        }
     }
 }
