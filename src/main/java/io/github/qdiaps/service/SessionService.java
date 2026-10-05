@@ -18,10 +18,11 @@ public class SessionService implements AutoCloseable {
     private final EventBus eventBus;
 
     public void resetSession() {
+        var pointsBeforeReset = dataModel.getPoints();
         dataModel.clear();
         session.reset();
-        eventBus.post(new SessionEvent.PointsCleared());
-        log.info("Session points and timer reset");
+        eventBus.post(new SessionEvent.PointsCleared(pointsBeforeReset));
+        log.info("Session points and timer reset, cleared {} points", pointsBeforeReset.size());
     }
 
     public void loadSession(List<DataPoint> loadedPoints, float maxTime) {

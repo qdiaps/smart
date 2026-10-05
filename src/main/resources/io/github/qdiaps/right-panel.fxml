@@ -78,7 +78,7 @@
             </padding>
             <children>
                 <Button mnemonicParsing="false" prefWidth="125.0" text="Пауза" />
-                <Button mnemonicParsing="false" prefWidth="125.0" text="Скинути дані" />
+                <Button fx:id="resetButton" disable="true" mnemonicParsing="false" prefWidth="125.0" text="Скинути дані" />
                 <Button mnemonicParsing="false" prefWidth="125.0" text="Відкрити файл" />
             </children>
         </VBox>
