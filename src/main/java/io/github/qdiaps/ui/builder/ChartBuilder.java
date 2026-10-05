@@ -1,5 +1,7 @@
 package io.github.qdiaps.ui.builder;
 
+import io.github.qdiaps.infrastructure.config.Config;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -26,7 +28,7 @@ public class ChartBuilder {
     private final NumberAxis axisX;
     private final NumberAxis axisY1;
 
-    private double maxTime = 0.0;
+    private ReadOnlyDoubleProperty maxTimeProperty;
 
     public ChartBuilder(String title) {
         this.chart = ChartFactory.createXYLineChart(
@@ -88,13 +90,13 @@ public class ChartBuilder {
         return this;
     }
 
-    public ChartBuilder withMaxTime(double maxTime) {
-        this.maxTime = maxTime;
+    public ChartBuilder withMaxTime(ReadOnlyDoubleProperty maxTimeProperty) {
+        this.maxTimeProperty = maxTimeProperty;
         return this;
     }
 
     public ChartViewer build() {
-        axisX.setRange(0.0, maxTime);
+        axisX.setRange(0.0, getMaxTime());
 
         var viewer = new ChartViewer(chart);
         ChartCanvas canvas = viewer.getCanvas();
@@ -102,6 +104,10 @@ public class ChartBuilder {
         setupInteractivity(viewer, canvas);
 
         return viewer;
+    }
+
+    private double getMaxTime() {
+        return maxTimeProperty != null ? maxTimeProperty.get() : Config.DEFAULT_CHART_MAX_TIME;
     }
 
     private void applyNordTheme() {
@@ -191,23 +197,24 @@ public class ChartBuilder {
 
         canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                axisX.setRange(0.0, maxTime);
+                axisX.setRange(0.0, getMaxTime());
             }
         });
 
         axisX.addChangeListener(event -> {
+            double currentMax = getMaxTime();
             double lower = axisX.getLowerBound();
             double upper = axisX.getUpperBound();
             double length = upper - lower;
 
-            if (length > maxTime) {
-                axisX.setRange(0.0, maxTime);
+            if (length > currentMax) {
+                axisX.setRange(0.0, currentMax);
                 return;
             }
             if (lower < 0.0) {
                 axisX.setRange(0.0, length);
-            } else if (upper > maxTime) {
-                axisX.setRange(maxTime - length, maxTime);
+            } else if (upper > currentMax) {
+                axisX.setRange(currentMax - length, currentMax);
             }
         });
     }

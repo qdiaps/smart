@@ -7,9 +7,12 @@ import io.github.qdiaps.infrastructure.config.Config;
 import io.github.qdiaps.service.SessionEvent;
 import io.github.qdiaps.ui.builder.ChartBuilder;
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.StackPane;
 import lombok.RequiredArgsConstructor;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.data.xy.XYSeries;
 
@@ -20,6 +23,9 @@ public class ChartController {
 
     @FXML
     private StackPane chartContainer;
+
+    private final DoubleProperty maxTimeProperty = new SimpleDoubleProperty(Config.DEFAULT_CHART_MAX_TIME);
+    private NumberAxis axisX;
 
     private XYSeries seriesTz;
     private XYSeries seriesTt;
@@ -34,8 +40,10 @@ public class ChartController {
         ChartViewer chart = chartBuilder
                 .withTempSeries(seriesTz, seriesTt)
                 .withPwmSeries(seriesOut)
-                .withMaxTime(Config.DEFAULT_CHART_MAX_TIME)
+                .withMaxTime(maxTimeProperty)
                 .build();
+
+        this.axisX = (NumberAxis) chart.getChart().getXYPlot().getDomainAxis();
 
         chartContainer.getChildren().add(chart);
         chart.prefWidthProperty().bind(chartContainer.widthProperty());
@@ -43,6 +51,8 @@ public class ChartController {
 
         eventBus.subscribe(DataPointAddedEvent.class, event -> onDataPointAdded(event.toDataPoint()));
         eventBus.subscribe(SessionEvent.PointsCleared.class, this::onPointsCleared);
+        eventBus.subscribe(SessionEvent.TimeLimitChanged.class, e -> onTimeLimitChanged(e.newMaxTime()));
+        eventBus.subscribe(SessionEvent.PointsTruncated.class, e -> onPointsTruncated(e.timeLimit()));
     }
 
     private void onDataPointAdded(DataPoint point) {
@@ -59,5 +69,32 @@ public class ChartController {
             seriesTt.clear();
             seriesOut.clear();
         });
+    }
+
+    private void onTimeLimitChanged(float newMaxTime) {
+        Platform.runLater(() -> {
+            maxTimeProperty.set(newMaxTime);
+            if (axisX != null) {
+                axisX.setRange(0.0, newMaxTime);
+            }
+        });
+    }
+
+    private void onPointsTruncated(float timeLimit) {
+        Platform.runLater(() -> {
+            truncateSeries(seriesTz, timeLimit);
+            truncateSeries(seriesTt, timeLimit);
+            truncateSeries(seriesOut, timeLimit);
+        });
+    }
+
+    private void truncateSeries(XYSeries series, float timeLimit) {
+        for (int i = series.getItemCount() - 1; i >= 0; i--) {
+            if (series.getX(i).doubleValue() > timeLimit) {
+                series.remove(i);
+            } else {
+                break;
+            }
+        }
     }
 }

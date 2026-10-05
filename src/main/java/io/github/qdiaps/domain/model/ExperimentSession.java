@@ -54,4 +54,11 @@ public class ExperimentSession {
     public synchronized boolean hasStarted() {
         return lastResumeTimestamp != -1 || accumulatedSeconds > 0;
     }
+
+    public synchronized void setElapsedTime(double seconds) {
+        this.accumulatedSeconds = Math.max(0.0, seconds);
+        if (lastResumeTimestamp != -1) {
+            this.lastResumeTimestamp = time.getCurrentTimeMillis();
+        }
+    }
 }

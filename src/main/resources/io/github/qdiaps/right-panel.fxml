@@ -20,8 +20,8 @@
                 <Label text="Шкала Х (сек):" />
                 <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="228.0" spacing="10.0">
                     <children>
-                        <TextField />
-                        <Button styleClass="button-icon">
+                        <TextField fx:id="timeScaleField" />
+                        <Button fx:id="applyTimeScaleButton" styleClass="button-icon">
                             <graphic>
                                 <FontIcon iconLiteral="mdal-check" iconSize="18" />
                             </graphic>

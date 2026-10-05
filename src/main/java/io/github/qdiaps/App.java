@@ -85,7 +85,7 @@ public class App extends Application {
             else if (type == ChartController.class)
                 return new ChartController(chartBuilder, eventBus);
             else if (type == RightPanelController.class)
-                return new RightPanelController();
+                return new RightPanelController(sessionService, eventBus, notifier);
             else if (type == MainController.class)
                 return new MainController(notifier);
 

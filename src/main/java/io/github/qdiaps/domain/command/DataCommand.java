@@ -14,6 +14,8 @@ public class DataCommand implements Command {
     private final DataModel data;
     private final ExperimentSession session;
 
+    private boolean timeLimitReached = false;
+
     @Override
     public Optional<DomainEvent> execute(String[] payload) {
         if (payload == null || payload.length != 3)
@@ -24,10 +26,18 @@ public class DataCommand implements Command {
             ));
 
         float time = (float) session.getElapsedSeconds();
-        if (!data.canAddPoint(time))
+        if (!data.canAddPoint(time)) {
+            session.setElapsedTime(data.getMaxTime());
+            if (!timeLimitReached) {
+                timeLimitReached = true;
+                return Optional.of(new TimeLimitReachedEvent(data.getMaxTime()));
+            }
             return Optional.of(new DataPointDroppedEvent(
                     "Time limit reached", "data:" + Arrays.toString(payload)
             ));
+        }
+
+        timeLimitReached = false;
 
         float tempTz, tempTt, out;
         try {

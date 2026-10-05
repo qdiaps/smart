@@ -30,6 +30,7 @@ public class SessionService implements AutoCloseable {
             throw new IllegalArgumentException("maxTime must be positive: " + maxTime);
 
         dataModel.loadPoints(loadedPoints);
+        session.setElapsedTime(dataModel.getLastPointTime());
 
         if (dataModel.getMaxTime() != maxTime) {
             dataModel.setMaxTime(maxTime);
@@ -53,6 +54,11 @@ public class SessionService implements AutoCloseable {
             }
             int removedCount = dataModel.truncatePointsAfter(newMaxTime);
             eventBus.post(new SessionEvent.PointsTruncated(newMaxTime, removedCount));
+            session.setElapsedTime(dataModel.getLastPointTime());
+        } else {
+            if (!dataModel.isEmpty() && session.getElapsedSeconds() > dataModel.getLastPointTime()) {
+                session.setElapsedTime(dataModel.getLastPointTime());
+            }
         }
 
         dataModel.setMaxTime(newMaxTime);
