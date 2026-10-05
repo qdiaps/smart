@@ -12,13 +12,13 @@ public class ExperimentSession {
     private boolean isPaused = false;
 
     public synchronized double getElapsedSeconds() {
+        if (isPaused) {
+            return accumulatedSeconds;
+        }
+
         if (lastResumeTimestamp == -1) {
             lastResumeTimestamp = time.getCurrentTimeMillis();
             return 0.0;
-        }
-
-        if (isPaused) {
-            return accumulatedSeconds;
         }
 
         long now = time.getCurrentTimeMillis();
@@ -26,15 +26,17 @@ public class ExperimentSession {
     }
 
     public synchronized void pause() {
-        if (!isPaused && lastResumeTimestamp != -1) {
-            accumulatedSeconds += (time.getCurrentTimeMillis() - lastResumeTimestamp) / 1000.0;
+        if (!isPaused) {
+            if (lastResumeTimestamp != -1)
+                accumulatedSeconds += (time.getCurrentTimeMillis() - lastResumeTimestamp) / 1000.0;
             isPaused = true;
         }
     }
 
     public synchronized void resume() {
         if (isPaused) {
-            lastResumeTimestamp = time.getCurrentTimeMillis();
+            if (lastResumeTimestamp != -1)
+                lastResumeTimestamp = time.getCurrentTimeMillis();
             isPaused = false;
         }
     }

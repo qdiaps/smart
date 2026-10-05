@@ -70,7 +70,7 @@ public class App extends Application {
         reliableSerialService = new ReliableSerialService(serialSendService, eventBus);
         var messageRouteService = new MessageRouteService(eventBus, reliableSerialService, commandRegistry, ackCommandRegistry);
         serialConnectionService = new SerialConnectionService(serial, reliableSerialService, eventBus);
-        var experimentControlService = new ExperimentControlService(experimentSession);
+        var experimentControlService = new ExperimentControlService(experimentSession, eventBus);
         sessionService = new SessionService(dataModel, experimentSession, eventBus);
 
 

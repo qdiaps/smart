@@ -14,4 +14,10 @@ public interface SessionEvent extends Event {
     record PointsTruncated(float timeLimit, int removedCount) implements SessionEvent, LoggableEvent {}
 
     record TimeLimitChanged(float newMaxTime) implements SessionEvent, LoggableEvent {}
+
+    record Paused() implements SessionEvent, LoggableEvent {}
+
+    record Resumed() implements SessionEvent, LoggableEvent {}
+
+    record Stopped() implements SessionEvent, LoggableEvent {}
 }
