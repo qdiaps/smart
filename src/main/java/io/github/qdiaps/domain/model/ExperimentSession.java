@@ -50,4 +50,8 @@ public class ExperimentSession {
     public synchronized boolean isPaused() {
         return isPaused;
     }
+
+    public synchronized boolean hasStarted() {
+        return lastResumeTimestamp != -1 || accumulatedSeconds > 0;
+    }
 }
