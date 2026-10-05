@@ -1,8 +1,10 @@
 package io.github.qdiaps.ui.controller;
 
+import atlantafx.base.theme.Styles;
 import io.github.qdiaps.domain.command.DataPointAddedEvent;
 import io.github.qdiaps.domain.command.TimeLimitReachedEvent;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.service.ExperimentControlService;
 import io.github.qdiaps.service.SessionEvent;
 import io.github.qdiaps.service.SessionService;
 import io.github.qdiaps.ui.Notifier;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RightPanelController {
     private final SessionService sessionService;
+    private final ExperimentControlService experimentControlService;
     private final EventBus eventBus;
     private final Notifier notifier;
 
@@ -23,14 +26,19 @@ public class RightPanelController {
     @FXML
     private Button applyTimeScaleButton;
     @FXML
+    private Button pauseButton;
+    @FXML
     private Button resetButton;
 
     @FXML
     private void initialize() {
         updateFieldWithCurrentMaxTime();
+        updatePauseButtonUI(experimentControlService.isPaused());
 
         applyTimeScaleButton.setOnAction(e -> onApplyTimeScale());
         timeScaleField.setOnAction(e -> onApplyTimeScale());
+
+        pauseButton.setOnAction(e -> onTogglePause());
 
         resetButton.setDisable(sessionService.getPointCount() == 0);
         resetButton.setOnAction(e -> onResetData());
@@ -45,6 +53,14 @@ public class RightPanelController {
                 ))
         );
 
+        eventBus.subscribe(SessionEvent.Paused.class, e ->
+                Platform.runLater(() -> updatePauseButtonUI(true))
+        );
+
+        eventBus.subscribe(SessionEvent.Resumed.class, e ->
+                Platform.runLater(() -> updatePauseButtonUI(false))
+        );
+
         eventBus.subscribe(DataPointAddedEvent.class, e -> {
             if (resetButton.isDisabled()) {
                 Platform.runLater(() -> resetButton.setDisable(false));
@@ -56,8 +72,32 @@ public class RightPanelController {
         );
 
         eventBus.subscribe(SessionEvent.PointsCleared.class, e ->
-                Platform.runLater(() -> resetButton.setDisable(true))
+                Platform.runLater(() -> {
+                    resetButton.setDisable(true);
+                    updatePauseButtonUI(false);
+                })
         );
+    }
+
+    private void onTogglePause() {
+        if (experimentControlService.isPaused()) {
+            experimentControlService.resumeExperiment();
+            notifier.showInfo("Експеримент відновлено.");
+        } else {
+            experimentControlService.pauseExperiment();
+            notifier.showInfo("Експеримент призупинено.");
+        }
+    }
+
+    private void updatePauseButtonUI(boolean isPaused) {
+        if (isPaused) {
+            pauseButton.setText("Продовжити");
+            pauseButton.getStyleClass().removeAll(Styles.SUCCESS);
+            pauseButton.getStyleClass().add(Styles.SUCCESS);
+        } else {
+            pauseButton.setText("Пауза");
+            pauseButton.getStyleClass().removeAll(Styles.SUCCESS);
+        }
     }
 
     private void updateFieldWithCurrentMaxTime() {
