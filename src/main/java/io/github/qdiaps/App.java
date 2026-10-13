@@ -14,6 +14,7 @@ import io.github.qdiaps.infrastructure.serial.Serial;
 import io.github.qdiaps.infrastructure.time.SystemTimeProvider;
 import io.github.qdiaps.service.ExperimentControlService;
 import io.github.qdiaps.service.MessageRouteService;
+import io.github.qdiaps.service.PidService;
 import io.github.qdiaps.service.ReliableSerialService;
 import io.github.qdiaps.service.SerialConnectionService;
 import io.github.qdiaps.service.SerialSendService;
@@ -72,6 +73,7 @@ public class App extends Application {
         serialConnectionService = new SerialConnectionService(serial, reliableSerialService, eventBus);
         var experimentControlService = new ExperimentControlService(experimentSession, eventBus);
         sessionService = new SessionService(dataModel, experimentSession, eventBus);
+        var pidService = new PidService(reliableSerialService, eventBus);
 
 
         // Setup fxml
@@ -85,7 +87,7 @@ public class App extends Application {
             else if (type == ChartController.class)
                 return new ChartController(chartBuilder, eventBus);
             else if (type == RightPanelController.class)
-                return new RightPanelController(sessionService, experimentControlService, eventBus, notifier);
+                return new RightPanelController(sessionService, experimentControlService, pidService, eventBus, notifier);
             else if (type == MainController.class)
                 return new MainController(notifier);
 

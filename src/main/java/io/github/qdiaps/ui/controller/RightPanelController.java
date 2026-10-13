@@ -4,7 +4,11 @@ import atlantafx.base.theme.Styles;
 import io.github.qdiaps.domain.command.DataPointAddedEvent;
 import io.github.qdiaps.domain.command.TimeLimitReachedEvent;
 import io.github.qdiaps.domain.event.EventBus;
+import io.github.qdiaps.domain.model.PidParameters;
+import io.github.qdiaps.infrastructure.config.Config;
+import io.github.qdiaps.infrastructure.serial.SerialEvent;
 import io.github.qdiaps.service.ExperimentControlService;
+import io.github.qdiaps.service.PidService;
 import io.github.qdiaps.service.SessionEvent;
 import io.github.qdiaps.service.SessionService;
 import io.github.qdiaps.ui.Notifier;
@@ -13,11 +17,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
 @RequiredArgsConstructor
 public class RightPanelController {
     private final SessionService sessionService;
     private final ExperimentControlService experimentControlService;
+    private final PidService pidService;
     private final EventBus eventBus;
     private final Notifier notifier;
 
@@ -26,9 +36,21 @@ public class RightPanelController {
     @FXML
     private Button applyTimeScaleButton;
     @FXML
+    private TextField tempTzField;
+    @FXML
+    private TextField proportionalField;
+    @FXML
+    private TextField integralField;
+    @FXML
+    private TextField differentialField;
+    @FXML
+    private Button applyPidButton;
+    @FXML
     private Button pauseButton;
     @FXML
     private Button resetButton;
+
+    private boolean isControllerConnected = false;
 
     @FXML
     private void initialize() {
@@ -38,10 +60,37 @@ public class RightPanelController {
         applyTimeScaleButton.setOnAction(e -> onApplyTimeScale());
         timeScaleField.setOnAction(e -> onApplyTimeScale());
 
+        applyPidButton.setDisable(!isControllerConnected);
+        applyPidButton.setOnAction(e -> onApplyPid());
+        tempTzField.setOnAction(e -> onApplyPid());
+        proportionalField.setOnAction(e -> onApplyPid());
+        integralField.setOnAction(e -> onApplyPid());
+        differentialField.setOnAction(e -> onApplyPid());
+
         pauseButton.setOnAction(e -> onTogglePause());
 
         resetButton.setDisable(sessionService.getPointCount() == 0);
         resetButton.setOnAction(e -> onResetData());
+
+        eventBus.subscribe(SerialEvent.PingSuccess.class, e -> Platform.runLater(() -> {
+            isControllerConnected = true;
+            applyPidButton.setDisable(false);
+        }));
+
+        eventBus.subscribe(SerialEvent.Disconnected.class, e -> Platform.runLater(() -> {
+            isControllerConnected = false;
+            applyPidButton.setDisable(true);
+        }));
+
+        eventBus.subscribe(SerialEvent.ConnectionLost.class, e -> Platform.runLater(() -> {
+            isControllerConnected = false;
+            applyPidButton.setDisable(true);
+        }));
+
+        eventBus.subscribe(SerialEvent.ConnectionFailed.class, e -> Platform.runLater(() -> {
+            isControllerConnected = false;
+            applyPidButton.setDisable(true);
+        }));
 
         eventBus.subscribe(SessionEvent.TimeLimitChanged.class, e ->
                 Platform.runLater(this::updateFieldWithCurrentMaxTime)
@@ -77,6 +126,73 @@ public class RightPanelController {
                     updatePauseButtonUI(false);
                 })
         );
+    }
+
+    private void onApplyPid() {
+        if (!isControllerConnected) {
+            return;
+        }
+
+        List<String> invalidFields = new ArrayList<>();
+
+        Float tempTz = parseAndValidate(tempTzField.getText(), Config.MIN_TEMP_TZ, Config.MAX_TEMP_TZ);
+        if (tempTz == null) {
+            invalidFields.add("Цільова температура");
+        }
+
+        Float kp = parseAndValidate(proportionalField.getText(), Config.MIN_PID_COEFF, Config.MAX_PID_COEFF);
+        if (kp == null) {
+            invalidFields.add("Пропорційний (Р)");
+        }
+
+        Float ki = parseAndValidate(integralField.getText(), Config.MIN_PID_COEFF, Config.MAX_PID_COEFF);
+        if (ki == null) {
+            invalidFields.add("Інтегральний (І)");
+        }
+
+        Float kd = parseAndValidate(differentialField.getText(), Config.MIN_PID_COEFF, Config.MAX_PID_COEFF);
+        if (kd == null) {
+            invalidFields.add("Диференціальний (D)");
+        }
+
+        if (!invalidFields.isEmpty()) {
+            notifier.showWarn(String.format(
+                    "Виявлено некоректні або порожні значення в полях: %s. Будь ласка, введіть дійсні числа.",
+                    String.join(", ", invalidFields)
+            ));
+            return;
+        }
+
+        applyPidButton.setDisable(true);
+        var pidParameters = new PidParameters(tempTz, kp, ki, kd);
+
+        pidService.sendParameters(pidParameters)
+                .thenRun(() -> Platform.runLater(() -> {
+                    applyPidButton.setDisable(!isControllerConnected);
+                    notifier.showInfo("Нові коефіцієнти ПІД-регулятора успішно передані на Arduino");
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        applyPidButton.setDisable(!isControllerConnected);
+                        notifier.showError("Не вдалося відправити дані. Arduino не відповідає на запит.");
+                    });
+                    return null;
+                });
+    }
+
+    private Float parseAndValidate(String text, float min, float max) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        try {
+            float val = Float.parseFloat(text.trim().replace(',', '.'));
+            if (val < min || val > max || Float.isNaN(val) || Float.isInfinite(val)) {
+                return null;
+            }
+            return val;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private void onTogglePause() {

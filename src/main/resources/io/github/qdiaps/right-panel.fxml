@@ -39,22 +39,22 @@
                 <Label text="Коефіцієнти:" />
                 <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
                     <children>
-                        <TextField promptText="Цільова температура">
+                        <TextField fx:id="tempTzField" promptText="Цільова температура">
                             <font>
                                 <Font size="12.0" />
                             </font>
                         </TextField>
-                        <TextField promptText="Пропорційний (Р)">
+                        <TextField fx:id="proportionalField" promptText="Пропорційний (Р)">
                             <font>
                                 <Font size="12.0" />
                             </font>
                         </TextField>
-                        <TextField promptText="Інтегральний (І)">
+                        <TextField fx:id="integralField" promptText="Інтегральний (І)">
                             <font>
                                 <Font size="12.0" />
                             </font>
                         </TextField>
-                        <TextField promptText="Диференціальний (D)">
+                        <TextField fx:id="differentialField" promptText="Диференціальний (D)">
                             <font>
                                 <Font size="12.0" />
                             </font>
@@ -63,7 +63,7 @@
                 </VBox>
                 <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                     <children>
-                        <Button mnemonicParsing="false" prefWidth="125.0" text="Застосувати" />
+                        <Button fx:id="applyPidButton" disable="true" mnemonicParsing="false" prefWidth="125.0" text="Застосувати" />
                     </children>
                 </HBox>
             </children>

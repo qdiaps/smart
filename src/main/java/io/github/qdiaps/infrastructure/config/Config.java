@@ -9,6 +9,15 @@ public final class Config {
     public static final int DEFAULT_BAUD_RATE = 9600;
     public static final int PING_TIMEOUT_MS = 300;
     public static final int PING_MAX_RETRIES = 3;
+    public static final int PID_TIMEOUT_MS = 500;
+    public static final int PID_MAX_RETRIES = 3;
+
+
+    // PID Ranges
+    public static final float MIN_TEMP_TZ = 0.0f;
+    public static final float MAX_TEMP_TZ = 100.0f;
+    public static final float MIN_PID_COEFF = 0.0f;
+    public static final float MAX_PID_COEFF = 1000.0f;
 
 
     // UI
