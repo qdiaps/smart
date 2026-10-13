@@ -3,7 +3,9 @@ package io.github.qdiaps.service;
 import io.github.qdiaps.domain.event.EventBus;
 import io.github.qdiaps.domain.model.ExperimentSession;
 import io.github.qdiaps.infrastructure.serial.SerialEvent;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ExperimentControlService {
     private final ExperimentSession session;
     private final EventBus eventBus;
@@ -24,6 +26,7 @@ public class ExperimentControlService {
         wasAutoPaused = false;
         if (!session.isPaused()) {
             session.pause();
+            log.info("Experiment paused by user");
             eventBus.post(new SessionEvent.Paused());
         }
     }
@@ -32,6 +35,7 @@ public class ExperimentControlService {
         wasAutoPaused = false;
         if (session.isPaused()) {
             session.resume();
+            log.info("Experiment resumed by user");
             eventBus.post(new SessionEvent.Resumed());
         }
     }
@@ -39,6 +43,7 @@ public class ExperimentControlService {
     public synchronized void stopExperiment() {
         wasAutoPaused = false;
         session.reset();
+        log.info("Experiment stopped");
         eventBus.post(new SessionEvent.Stopped());
     }
 
@@ -50,6 +55,7 @@ public class ExperimentControlService {
         if (session.hasStarted() && !session.isPaused()) {
             wasAutoPaused = true;
             session.pause();
+            log.warn("Experiment auto-paused due to connection disruption");
             eventBus.post(new SessionEvent.Paused());
         }
     }
@@ -58,6 +64,7 @@ public class ExperimentControlService {
         if (wasAutoPaused && session.isPaused()) {
             wasAutoPaused = false;
             session.resume();
+            log.info("Experiment auto-resumed after connection restored");
             eventBus.post(new SessionEvent.Resumed());
         }
     }

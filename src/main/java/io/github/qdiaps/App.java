@@ -105,11 +105,12 @@ public class App extends Application {
         stage.setScene(new Scene(root));
         stage.show();
 
-        log.info("Program {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
+        log.info("Application {} v{} started", Config.PROGRAM_NAME, Config.getVersion());
     }
 
     @Override
     public void stop() {
+        log.info("Shutting down application...");
         if (serialConnectionService != null) {
             serialConnectionService.disconnect();
         }
@@ -128,6 +129,6 @@ public class App extends Application {
             }
         }
 
-        log.info("Shutdown");
+        log.info("Application stopped");
     }
 }

@@ -1,7 +1,25 @@
 <configuration>
+    <!-- Default log pattern for release mode: clean, readable, no thread/logger clutter -->
+    <property name="RELEASE_PATTERN" value="%d{HH:mm:ss} %highlight(%-5level) %msg%n" />
+
+    <!-- Detailed pattern for debug mode: includes thread and logger -->
+    <property name="DEBUG_PATTERN" value="%d{HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) - %msg%n" />
+
+    <property scope="context" name="CONSOLE_PATTERN" value="${RELEASE_PATTERN}" />
+
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>log.level</key>
+        <value>DEBUG</value>
+    </condition>
+    <if>
+        <then>
+            <property scope="context" name="CONSOLE_PATTERN" value="${DEBUG_PATTERN}" />
+        </then>
+    </if>
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) - %msg%n</pattern>
+            <pattern>${CONSOLE_PATTERN}</pattern>
         </encoder>
     </appender>
 
@@ -21,6 +39,5 @@
         <appender-ref ref="FILE" />
     </root>
 
-<!--    <logger name="com.fazecast.jSerialComm" level="WARN" />-->
-<!--    <logger name="javafx" level="WARN" />-->
+    <logger name="com.fazecast.jSerialComm" level="WARN" />
 </configuration>

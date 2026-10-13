@@ -18,6 +18,7 @@
         <javafx.version>21.0.2</javafx.version>
         <mockito.version>5.23.0</mockito.version>
         <ikonli.version>12.4.0</ikonli.version>
+        <log.level>DEBUG</log.level>
     </properties>
 
     <dependencies>
@@ -173,7 +174,7 @@
                 <version>3.5.6</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <log.level>DEBUG</log.level>
+                        <log.level>${log.level}</log.level>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -184,7 +185,7 @@
                 <configuration>
                     <mainClass>${main.class}</mainClass>
                     <options>
-                        <option>-Dlog.level=DEBUG</option>
+                        <option>-Dlog.level=${log.level}</option>
                     </options>
                 </configuration>
             </plugin>
@@ -209,6 +210,7 @@
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                             <mainClass>${main.class}</mainClass>
                                         </transformer>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                     </transformers>
                                     <filters>
                                         <filter>

@@ -5,10 +5,12 @@ import io.github.qdiaps.domain.model.DataModel;
 import io.github.qdiaps.domain.model.DataPoint;
 import io.github.qdiaps.domain.model.ExperimentSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 public class DataCommand implements Command {
     private final DataModel data;
@@ -18,20 +20,25 @@ public class DataCommand implements Command {
 
     @Override
     public Optional<DomainEvent> execute(String[] payload) {
-        if (payload == null || payload.length != 3)
+        if (payload == null || payload.length != 3) {
+            log.warn("Invalid data payload: {}", Arrays.toString(payload));
             return getIncorrectFormatEvent(payload);
-        else if (session.isPaused())
+        } else if (session.isPaused()) {
+            log.debug("Data point dropped: experiment is paused");
             return Optional.of(new DataPointDroppedEvent(
                     "Experiment is paused", "data:" + Arrays.toString(payload)
             ));
+        }
 
         float time = (float) session.getElapsedSeconds();
         if (!data.canAddPoint(time)) {
             session.setElapsedTime(data.getMaxTime());
             if (!timeLimitReached) {
                 timeLimitReached = true;
+                log.info("Time limit reached ({} s), incoming points will be dropped", data.getMaxTime());
                 return Optional.of(new TimeLimitReachedEvent(data.getMaxTime()));
             }
+            log.debug("Data point dropped: time limit reached");
             return Optional.of(new DataPointDroppedEvent(
                     "Time limit reached", "data:" + Arrays.toString(payload)
             ));
@@ -45,13 +52,16 @@ public class DataCommand implements Command {
             tempTt = Float.parseFloat(payload[1]);
             out = Float.parseFloat(payload[2]);
         } catch (NullPointerException | NumberFormatException e) {
+            log.warn("Failed to parse data point numbers: {}", Arrays.toString(payload));
             return getIncorrectFormatEvent(payload);
         }
 
-        if (!hasValidRanges(tempTz, tempTt, out))
+        if (!hasValidRanges(tempTz, tempTt, out)) {
+            log.warn("Data point values out of acceptable range (0-100): {}", Arrays.toString(payload));
             return Optional.of(new DataPointDroppedEvent(
                     "Values are out of acceptable range (0-100)", "data:" + Arrays.toString(payload)
             ));
+        }
 
         var point = new DataPoint(time, tempTz, tempTt, out);
         data.addPoint(point);

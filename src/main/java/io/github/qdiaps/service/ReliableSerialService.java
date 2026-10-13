@@ -1,11 +1,13 @@
 package io.github.qdiaps.service;
 
 import io.github.qdiaps.domain.event.EventBus;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
+@Slf4j
 public class ReliableSerialService implements AutoCloseable {
     private final SerialSendService sendService;
     private final EventBus eventBus;
@@ -31,11 +33,15 @@ public class ReliableSerialService implements AutoCloseable {
 
     public void confirmAck(String ackKey) {
         CompletableFuture<Void> future = pendingAcks.remove(ackKey);
-        if (future != null)
+        if (future != null) {
+            log.debug("Acknowledgment '{}' confirmed", ackKey);
             future.complete(null);
+        }
     }
 
     public CompletableFuture<Void> sendWithRetry(String message, String expectedAck, int maxRetries, long timeoutMs) {
+        log.debug("Sending message '{}' expecting ack '{}' (max retries: {}, timeout: {} ms)",
+                message, expectedAck, maxRetries, timeoutMs);
         CompletableFuture<Void> future = new CompletableFuture<>();
         pendingAcks.put(expectedAck, future);
 
@@ -51,6 +57,7 @@ public class ReliableSerialService implements AutoCloseable {
         if (future.isDone()) return;
 
         if (retriesLeft < 0) {
+            log.warn("Command '{}' failed: no response '{}' received within timeout", message, expectedAck);
             future.completeExceptionally(new TimeoutException());
             eventBus.post(new MessageDeliveryFailedEvent(
                     "No response '" + expectedAck + "' was received for the command '" + message + "'"

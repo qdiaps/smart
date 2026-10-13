@@ -28,6 +28,7 @@ public class Serial {
 
     public void openPort(String portName, int baudRate) {
         if (port != null && port.isOpen()) {
+            log.warn("Port is already open");
             eventBus.post(new SerialEvent.ConnectionFailed("Port is already open"));
             return;
         }
@@ -36,6 +37,7 @@ public class Serial {
         try {
             tempPort = SerialPort.getCommPort(portName);
         } catch (SerialPortInvalidPortException e) {
+            log.warn("Invalid port name: {}", portName);
             eventBus.post(new SerialEvent.ConnectionFailed("Invalid port name: " + portName));
             return;
         }
@@ -43,11 +45,13 @@ public class Serial {
         port = tempPort;
 
         if (!port.setBaudRate(baudRate)) {
+            log.warn("Failed to set baud rate {} on port {}", baudRate, portName);
             eventBus.post(new SerialEvent.ConnectionFailed("Invalid baudRate: " + baudRate));
             return;
         }
 
         if (!port.openPort()) {
+            log.warn("Failed to open port {}: port is in use by another process", portName);
             eventBus.post(new SerialEvent.ConnectionFailed("Port is currently in use by another process"));
             return;
         }
@@ -58,6 +62,7 @@ public class Serial {
             if (port != null && port.isOpen()) {
                 port.flushIOBuffers();
                 isReadyToRead = true;
+                log.info("Serial connection established on {} ({} baud)", portName, baudRate);
                 eventBus.post(new SerialEvent.ConnectionEstablished(portName, baudRate));
             }
         }, CompletableFuture.delayedExecutor(Config.ARDUINO_BOOT_DELAY_SECONDS, TimeUnit.SECONDS));
@@ -65,16 +70,19 @@ public class Serial {
 
     public void closePort() {
         if (port != null && port.isOpen()) {
+            String name = port.getSystemPortName();
             port.removeDataListener();
             port.closePort();
             port = null;
             isReadyToRead = false;
+            log.info("Port {} closed", name);
             eventBus.post(new SerialEvent.Disconnected());
         }
     }
 
     public void send(String rawData) {
         if (port == null || !port.isOpen() || !isReadyToRead) {
+            log.warn("Cannot send message: port is not connected");
             eventBus.post(new SerialEvent.DataSendFailed("Port is not connected"));
             return;
         }
@@ -86,8 +94,10 @@ public class Serial {
             out.write(data.getBytes());
             out.flush();
 
+            log.debug("Serial data sent: {}", rawData);
             eventBus.post(new SerialEvent.DataSent(rawData));
         } catch (Exception e) {
+            log.warn("Failed to write data to port: {}", e.getMessage());
             eventBus.post(new SerialEvent.DataSendFailed("Write error: " + e.getMessage()));
         }
     }
@@ -113,12 +123,14 @@ public class Serial {
             @Override
             public void serialEvent(SerialPortEvent event) {
                 if ((event.getEventType() & SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) > 0) {
+                    String name = port != null ? port.getSystemPortName() : "unknown";
                     if (port != null) {
                         port.removeDataListener();
                         port.closePort();
                         port = null;
                         isReadyToRead = false;
                     }
+                    log.warn("Serial connection on {} lost unexpectedly", name);
                     eventBus.post(new SerialEvent.ConnectionLost("Device disconnected unexpectedly"));
                 } else if ((event.getEventType() & SerialPort.LISTENING_EVENT_DATA_RECEIVED) > 0) {
                     if (!isReadyToRead)

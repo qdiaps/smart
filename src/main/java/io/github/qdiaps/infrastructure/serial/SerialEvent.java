@@ -1,19 +1,17 @@
 package io.github.qdiaps.infrastructure.serial;
 
 import io.github.qdiaps.domain.event.Event;
-import io.github.qdiaps.domain.event.FailedEvent;
-import io.github.qdiaps.domain.event.LoggableEvent;
 
 public interface SerialEvent extends Event {
-    record ConnectionEstablished(String portName, int baudRate) implements SerialEvent, LoggableEvent {}
-    record ConnectionFailed(String reason) implements SerialEvent, FailedEvent {}
-    record ConnectionLost(String reason) implements SerialEvent, FailedEvent {}
-    record Disconnected() implements SerialEvent, LoggableEvent {}
+    record ConnectionEstablished(String portName, int baudRate) implements SerialEvent {}
+    record ConnectionFailed(String reason) implements SerialEvent {}
+    record ConnectionLost(String reason) implements SerialEvent {}
+    record Disconnected() implements SerialEvent {}
 
     record DataReceived(String data) implements SerialEvent, Event {}
-    record DataSent(String data) implements SerialEvent, LoggableEvent {}
-    record DataSendFailed(String reason) implements SerialEvent, FailedEvent {}
+    record DataSent(String data) implements SerialEvent {}
+    record DataSendFailed(String reason) implements SerialEvent {}
 
-    record PingSuccess() implements SerialEvent, LoggableEvent {}
-    record PingFailed(String reason) implements SerialEvent, FailedEvent {}
+    record PingSuccess() implements SerialEvent {}
+    record PingFailed(String reason) implements SerialEvent {}
 }

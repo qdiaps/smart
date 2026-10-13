@@ -22,7 +22,7 @@ public class SessionService implements AutoCloseable {
         dataModel.clear();
         session.reset();
         eventBus.post(new SessionEvent.PointsCleared(pointsBeforeReset));
-        log.info("Session points and timer reset, cleared {} points", pointsBeforeReset.size());
+        log.info("Session reset: cleared {} points", pointsBeforeReset.size());
     }
 
     public void loadSession(List<DataPoint> loadedPoints, float maxTime) {
@@ -39,6 +39,7 @@ public class SessionService implements AutoCloseable {
         }
 
         eventBus.post(new SessionEvent.PointsLoaded(dataModel.getPoints()));
+        log.info("Loaded session with {} points (time limit: {} s)", loadedPoints.size(), maxTime);
     }
 
     public boolean canSetMaxTimeWithoutLoss(float newMaxTime) {
@@ -56,10 +57,12 @@ public class SessionService implements AutoCloseable {
             int removedCount = dataModel.truncatePointsAfter(newMaxTime);
             eventBus.post(new SessionEvent.PointsTruncated(newMaxTime, removedCount));
             session.setElapsedTime(dataModel.getLastPointTime());
+            log.warn("Time limit reduced to {} s, truncated {} points", newMaxTime, removedCount);
         } else {
             if (!dataModel.isEmpty() && session.getElapsedSeconds() > dataModel.getLastPointTime()) {
                 session.setElapsedTime(dataModel.getLastPointTime());
             }
+            log.info("Time limit set to {} s", newMaxTime);
         }
 
         dataModel.setMaxTime(newMaxTime);
